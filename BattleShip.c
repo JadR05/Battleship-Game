@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-// Variables to track 
+// Variables to track
+int Shipsleft1 = 4, Shipsleft2 = 4; 
 int radarSweep1 = 3, radarSweep2 = 3;
 int sunkShips1 = 0, sunkShips2 = 0;
 int readyArtilleries1 = 0, readyArtilleries2 = 0;
@@ -168,8 +169,8 @@ void fire(char grid[10][10], char playerName[10], int x, int y, int difficulty){
     }
 }
 
-void radarSweep(char grid[10][10], char playerName[10], int x, int y, int *radarSweep){
-    if(*radarSweep){
+void radarSweep(char grid[10][10], int x, int y, int *radarSweep){
+    if(*radarSweep>0){
         int found = 0;
         for(int i = x; i< x+2 && i<10;i++){
             for(int j = y; j< y+2 && j<10;j++){
@@ -204,8 +205,29 @@ void smokeScreen(char grid[10][10], int *sunkShips, int x, int y){
     }
 }
 
-void artillery(char grid[10][10], char playerName[10], int x, int y, int *artilleryReady){
+void artillery(char grid[10][10], char playerName[10], int x, int y, int *artilleryReady,int difficulty){
     
+}
+
+void torpedo(char grid[10][10], char playerName[10], int roworcol, int *readyTorpedo, int difficulty){
+    if(*readyTorpedo){
+        if(roworcol>='A' && roworcol<='J'){
+            int col = roworcol -'A';
+            for(int i = 0;i<10;i++){
+                fire(grid,playerName,i,col,difficulty);
+            }
+        }else if(roworcol>='1' && rowcol<='9'){
+            int row = roworcol-'1';
+            for(int i = 0;i<10;i++){
+                fire(grid,playerName,row,i,difficulty);
+            }
+            *readyTorpedo = 0;
+        }
+    }else{
+        printf("No available torpedo.\n");
+    }
+
+
 }
 
 int main() {
