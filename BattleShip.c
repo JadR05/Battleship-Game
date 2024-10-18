@@ -217,29 +217,36 @@ void smokeScreen(char grid[10][10], int *sunkShips, int x, int y){
 }
 
 void artillery(char grid[10][10], char playerName[20], int row, int col, int *artilleryReady, int difficulty) {
-    if (*artilleryReady == 0) {
-        printf("Artillery is not ready.\n");
-        return;
-    }
-
-    int hit = 0;
-    printf("%s fires artillery at %c%d!\n", playerName, 'A' + col, row + 1);
-    for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 2; j++) {
-            int tempRow = row + i;
-            int tempCol = col + j;
-
-            if (row < 10 && col < 10) {
+    if (*artilleryReady) {
+        for (int i = 0; i < row + 2 && i<10; i++) {
+            for (int j = 0; j < col + 2 && j<10; j++) {
                 fire(grid, playerName, tempRow, tempCol, difficulty);            
             }
         }
     }
-
-    if (!hit) {
-        printf("%s's artillery missed.\n", playerName);
-    }
-
     *artilleryReady = 0;
+    else{
+        printf("Artillery not avialable.")
+    }
+}
+
+void torpedo(char grid[10][10], char playerName[10], int roworcol, int *readyTorpedo, int difficulty){
+    if(*readyTorpedo){
+        if(roworcol>='A' && roworcol<='J'){
+            int col = roworcol -'A';
+            for(int i = 0;i<10;i++){
+                fire(grid,playerName,i,col,difficulty);
+            }
+        }else if(roworcol>='1' && rowcol<='9'){
+            int row = roworcol-'1';
+            for(int i = 0;i<10;i++){
+                fire(grid,playerName,row,i,difficulty);
+            }
+            *readyTorpedo = 0;
+        }
+    }else{
+        printf("No available torpedo.\n");
+    }
 }
 
 
