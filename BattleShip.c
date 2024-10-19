@@ -3,16 +3,6 @@
 #include <time.h>
 #include <string.h>
 
-#define GRID_SIZE 10
-#define WATER '~'
-#define HIT '*'
-#define MISS 'o'
-#define CARRIER_SIZE 5
-#define BATTLESHIP_SIZE 4
-#define DESTROYER_SIZE 3
-#define SUBMARINE_SIZE 2
-#define EASY 1
-#define HARD 2
 
 // Variables to track 
 int sunkShips1 = 0, sunkShips2 = 0;
@@ -63,7 +53,7 @@ void clearScreen() {
     }
 }
 
-void placeShip(char grid[10][10], struct Ship ship, char playerName[20]) {
+void placeShip(char grid[10][10], struct Ship ship, char playerName[10]) {
     int x;
     int direction;
     int validPlacement = 0;
@@ -118,7 +108,7 @@ void placeShip(char grid[10][10], struct Ship ship, char playerName[20]) {
     }
 }
 
-void playerPlaceShips(char grid[10][10], char playerName[20]) {
+void playerPlaceShips(char grid[10][10], char playerName[10]) {
     printf("\n");
 
     for (int i = 0; i < 4; i++) {
@@ -142,7 +132,7 @@ int getDifficulty() {
     return choice;
 }
 
-void getNames(char name1[20], char name2[20]) {
+void getNames(char name1[10], char name2[10]) {
     printf("Player 1:\nEnter your name: ");
     scanf("%s", name1);
 
@@ -154,7 +144,7 @@ void getNames(char name1[20], char name2[20]) {
     printf("\n");
 }
 
-int randomChooser(char name1[20], char name2[20]) {
+int randomChooser(char name1[10], char name2[10]) {
     srand(time(0));
     int x = rand() % 2;
     if (x == 0) {
@@ -166,26 +156,13 @@ int randomChooser(char name1[20], char name2[20]) {
     }
 }
 
-void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[20],int difficulty,int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo){
-    displayGrid(opponentGrid);
-    printf("The posssible moves are: \n. fire\n");
-    if(*radarSweep>0){
-        printf(". Radar\n");
-    }
-    if(*smokeScreen>0){
-        printf(". Smoke\n");
-    }
-    if(*readyArtilleries == 1){
-        printf(". Artillery\n");
-    }
-    if(*readyTorpedo == 1){
-        printf(". Torpedo\n");
+int isPartOfShip(char grid[10][10],int row,int col,int shipsize){
+    for(int i = 0;i<shipsize;i++){
+        if(col + i<10 && grid[row][col+i] == 'S') return 1;
+        if(row + i<10 && grid[row+i][col] == 'S') return 1;
     }
 
-    (*readyArtilleries) = 0;
-    (*readyTorpedo) = 0;
-    Checkifsunk(grid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,playerName);
-    displayGrid(opponentGrid);
+    return 0; 
 }
 
 void Checkifsunk(char grid[10][10], struct Ship ships[], int *sunkShips,int *smokeScreen, int *readyArtilleries, int *readyTorpedo, char playerName[10]){
@@ -207,7 +184,7 @@ void Checkifsunk(char grid[10][10], struct Ship ships[], int *sunkShips,int *smo
     }
 
     for(int k = 0;k<4; k++){
-        if(shipCounters[k] == shipSizes[k]){
+        if(shipcounters[k] == shipSizes[k]){
             printf("%s's %s has been sunk!\n", playerName, ships[k].name);
             (*sunkShips)++;
             (*smokeScreen)++;
@@ -220,13 +197,26 @@ void Checkifsunk(char grid[10][10], struct Ship ships[], int *sunkShips,int *smo
     }
 }
 
-int isPartOfShip(char grid[10][10],int row,int col,int shipsize){
-    for(int i = 0;i<shipSize<;i++){
-        if(col + i<10 && grid[row][col+i] == 'S') return 1;
-        if(row + i<10 && grid[row+i][col] == 'S') return 1;
+void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[10],int difficulty,int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo){
+    displayGrid(opponentGrid);
+    printf("The posssible moves are: \n. fire\n");
+    if(*radarSweep>0){
+        printf(". Radar\n");
+    }
+    if(*smokeScreen>0){
+        printf(". Smoke\n");
+    }
+    if(*readyArtilleries == 1){
+        printf(". Artillery\n");
+    }
+    if(*readyTorpedo == 1){
+        printf(". Torpedo\n");
     }
 
-    return 0; 
+    (*readyArtilleries) = 0;
+    (*readyTorpedo) = 0;
+    Checkifsunk(grid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,playerName);
+    displayGrid(opponentGrid);
 }
 
 void fire(char grid[10][10], char playerName[20], int x, int y, int difficulty){
@@ -266,7 +256,7 @@ void smokeScreen(char grid[10][10], int *smokeScreen, int x, int y){
     if(*smokeScreen > 0){
         for(int i = x; i< x+2 && i<10;i++){
             for(int j = y; j< y+2 && j<10;j++){
-                grid[i][j] == 'X';
+                grid[i][j] = 'X';
             }
         }
         (*smokeScreen)--;
@@ -283,10 +273,10 @@ void artillery(char grid[10][10], char playerName[20], int row, int col, int *ar
                 fire(grid, playerName, i, j, difficulty);            
             }
         }
+            *artilleryReady = 0;
     }
-    *artilleryReady = 0;
     else{
-        printf("Artillery not avialable.")
+        printf("Artillery not avialable.");
     }
 }
 
@@ -297,7 +287,7 @@ void torpedo(char grid[10][10], char playerName[10], int roworcol, int *readyTor
             for(int i = 0;i<10;i++){
                 fire(grid,playerName,i,col,difficulty);
             }
-        }else if(roworcol>='1' && rowcol<='9'){
+        }else if(roworcol>='1' && roworcol<='9'){
             int row = roworcol-'1';
             for(int i = 0;i<10;i++){
                 fire(grid,playerName,row,i,difficulty);
