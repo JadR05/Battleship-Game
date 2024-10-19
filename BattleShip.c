@@ -165,8 +165,72 @@ int randomChooser(char name1[20], char name2[20]) {
     }
 }
 
-void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[20],int difficulty, int *radarSweep, int *sunkShips, int *readyArtilleries, int *readyTorpedo){
+void processMove(char *playerName, char grid[10][10], int trackingMode, int *radarUsed, int playerTurn) {
+    char move[20]; // To store player input
+    printf("%s, enter your move: ", playerName);
+    scanf("%s", move);
 
+    // Parse the move (Fire [coordinate] or Radar [coordinate])
+    if (strncmp(move, "Fire", 4) == 0) {
+        char coord[3];
+        sscanf(move, "Fire %s", coord); // Extract the coordinate
+
+        int row = coord[1] - '1'; // Extract row
+        int col = coord[0] - 'A'; // Extract column (A = 0, B = 1, etc.)
+
+        if (row >= 0 && row < 10 && col >= 0 && col < 10) {
+            // Check if it's a hit or miss
+            if (grid[row][col] == 'S') { // Assuming 'S' represents a ship
+                grid[row][col] = '*'; // Mark as hit
+                printf("Hit at %s!\n", coord);
+            } else {
+                if (trackingMode == 0) { // Easy mode
+                    grid[row][col] = 'o'; // Mark as miss
+                }
+                printf("Miss at %s.\n", coord);
+            }
+        } else {
+            printf("Invalid coordinates. You lose your turn.\n");
+        }
+    } else if (strncmp(move, "Radar", 5) == 0) {
+        if (*radarUsed < 3) {
+            char coord[3];
+            sscanf(move, "Radar %s", coord); // Extract the coordinate
+
+            int row = coord[1] - '1'; // Top-left row of the 2x2 area
+            int col = coord[0] - 'A'; // Top-left column of the 2x2 area
+
+            if (row >= 0 && row < 9 && col >= 0 && col < 9) { // Ensure 2x2 area is within bounds
+                int enemyShipsFound = 0;
+
+                // Check the 2x2 area
+                for (int r = row; r <= row + 1; r++) {
+                    for (int c = col; c <= col + 1; c++) {
+                        if (grid[r][c] == 'S') {
+                            enemyShipsFound = 1;
+                            break;
+                        }
+                    }
+                }
+
+                if (enemyShipsFound) {
+                    printf("Enemy ships found in the area around %s!\n", coord);
+                } else {
+                    printf("No enemy ships found in the area around %s.\n", coord);
+                }
+                (*radarUsed)++; // Increment radar use counter
+            } else {
+                printf("Invalid coordinates for radar sweep. You lose your turn.\n");
+            }
+        } else {
+            printf("You have used all your radar sweeps. You lose your turn.\n");
+        }
+    } else {
+        printf("Invalid move command. You lose your turn.\n");
+    }
+
+    // After processing the move, switch the turn
+    playerTurn = (playerTurn + 1) % 2;
 }
 
 void fire(char grid[10][10], char playerName[20], int x, int y, int difficulty){
