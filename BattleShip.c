@@ -35,7 +35,7 @@ struct Ship ships[] = {
 void initializeGrid(char grid[10][10]) {
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++) {
-            grid[i][j] = '~';
+            grid[i][j] = WATER;
         }
     }
 }
@@ -171,11 +171,11 @@ void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[2
 
 void fire(char grid[10][10], char playerName[20], int x, int y, int difficulty){
     if(grid[x][y] == 'S'){
-        grid[x][y] = '*';
+        grid[x][y] = HIT;
         printf("%s fired at %c%d. Hit!\n", playerName, y + 'A', x+1);
     }else{
         if(difficulty == 1){
-            grid[x][y] = 'o';
+            grid[x][y] = MISS;
         }
     }
 }
