@@ -15,8 +15,9 @@
 #define HARD 2
 
 // Variables to track 
-int radarSweep1 = 3, radarSweep2 = 3;
 int sunkShips1 = 0, sunkShips2 = 0;
+int radarSweep1 = 3, radarSweep2 = 3;
+int smokeScreen1 = 0 , smokeScreen2 = 0; 
 int readyArtilleries1 = 0, readyArtilleries2 = 0;
 int readyTorpedo1 = 0, readyTorpedo2 = 0;
 
@@ -165,8 +166,67 @@ int randomChooser(char name1[20], char name2[20]) {
     }
 }
 
-void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[20],int difficulty, int *radarSweep, int *sunkShips, int *readyArtilleries, int *readyTorpedo){
+void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[20],int difficulty,int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo){
+    displayGrid(opponentGrid);
+    printf("The posssible moves are: \n. fire\n");
+    if(*radarSweep>0){
+        printf(". Radar\n");
+    }
+    if(*smokeScreen>0){
+        printf(". Smoke\n");
+    }
+    if(*readyArtilleries == 1){
+        printf(". Artillery\n");
+    }
+    if(*readyTorpedo == 1){
+        printf(". Torpedo\n");
+    }
 
+    (*readyArtilleries) = 0;
+    (*readyTorpedo) = 0;
+    Checkifsunk(grid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,playerName);
+    displayGrid(opponentGrid);
+}
+
+void Checkifsunk(char grid[10][10], struct Ship ships[], int *sunkShips,int *smokeScreen, int *readyArtilleries, int *readyTorpedo, char playerName[10]){
+    int shipSizes[] = {5,4,3,2};
+    int shipcounters[] = {0,0,0,0};
+
+    for(int i = 0;i<10;i++){
+        for(int j = 0; j<10;j++){
+            if(grid[i][j]=='*'){
+
+                for(int k = 0; k<4;k++){
+                    if(shipSizes[k] != 0 && isPartOfShip(grid,i,j,shipSizes[k])){
+                        shipcounters[k]++;
+                    }
+                }
+
+            }
+        }
+    }
+
+    for(int k = 0;k<4; k++){
+        if(shipCounters[k] == shipSizes[k]){
+            printf("%s's %s has been sunk!\n", playerName, ships[k].name);
+            (*sunkShips)++;
+            (*smokeScreen)++;
+            (*readyArtilleries) = 1;
+            shipSizes[k] = 0;
+            if(*sunkShips == 3){
+                *readyTorpedo = 1;
+            }
+        }
+    }
+}
+
+int isPartOfShip(char grid[10][10],int row,int col,int shipsize){
+    for(int i = 0;i<shipSize<;i++){
+        if(col + i<10 && grid[row][col+i] == 'S') return 1;
+        if(row + i<10 && grid[row+i][col] == 'S') return 1;
+    }
+
+    return 0; 
 }
 
 void fire(char grid[10][10], char playerName[20], int x, int y, int difficulty){
@@ -180,7 +240,7 @@ void fire(char grid[10][10], char playerName[20], int x, int y, int difficulty){
     }
 }
 
-void radarSweep(char grid[10][10], char playerName[20], int x, int y, int *radarSweep){
+void radarSweep(char grid[10][10], int x, int y, int *radarSweep){
     if(*radarSweep){
         int found = 0;
         for(int i = x; i< x+2 && i<10;i++){
@@ -202,14 +262,14 @@ void radarSweep(char grid[10][10], char playerName[20], int x, int y, int *radar
     }
 }
 
-void smokeScreen(char grid[10][10], int *sunkShips, int x, int y){
-    if(*sunkShips > 0){
+void smokeScreen(char grid[10][10], int *smokeScreen, int x, int y){
+    if(*smokeScreen > 0){
         for(int i = x; i< x+2 && i<10;i++){
             for(int j = y; j< y+2 && j<10;j++){
                 grid[i][j] == 'X';
             }
         }
-        (*sunkShips)--;
+        (*smokeScreen)--;
         clearScreen();
     }else{
         printf("No available smoke screens.\n");
@@ -220,7 +280,7 @@ void artillery(char grid[10][10], char playerName[20], int row, int col, int *ar
     if (*artilleryReady) {
         for (int i = 0; i < row + 2 && i<10; i++) {
             for (int j = 0; j < col + 2 && j<10; j++) {
-                fire(grid, playerName, tempRow, tempCol, difficulty);            
+                fire(grid, playerName, i, j, difficulty);            
             }
         }
     }
@@ -251,7 +311,7 @@ void torpedo(char grid[10][10], char playerName[10], int roworcol, int *readyTor
 
 
 int main() {
-    char name1[20], name2[20];
+    char name1[10], name2[10];
     char grid1[10][10], grid2[10][10];
 
     int difficulty = getDifficulty();
@@ -273,10 +333,10 @@ int main() {
     int currentPlayer = startingPlayer;
     while(sunkShips1 < 4 && sunkShips2 < 4){
         if(currentPlayer == 0){
-            processMove(grid1, grid2, name1, difficulty, &radarSweep1, &sunkShips1, &readyArtilleries1,&readyTorpedo1);
+            processMove(grid1, grid2, name1, difficulty,&sunkShips1, &radarSweep1, &smokeScreen1, &readyArtilleries1,&readyTorpedo1);
             currentPlayer = 1;
         }else{
-            processMove(grid2, grid1, name2, difficulty, &radarSweep2, &sunkShips2, &readyArtilleries2,&readyTorpedo2);
+            processMove(grid2, grid1, name2, difficulty, &sunkShips2, &radarSweep2, &smokeScreen2, &readyArtilleries2,&readyTorpedo2);
             currentPlayer = 0;
         }
     }
