@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
+#include <unistd.h>
 
 
 // Variables to track 
@@ -63,7 +65,7 @@ void placeShip(char grid[10][10], struct Ship ship, char playerName[10]) {
         printf("Enter starting position (example: A5): ");
         char col;
         scanf(" %c%d", &col, &x);
-
+        col = toupper(col);
         col = col - 'A'; 
         x--;              
 
@@ -111,10 +113,12 @@ void placeShip(char grid[10][10], struct Ship ship, char playerName[10]) {
 void playerPlaceShips(char grid[10][10], char playerName[10]) {
     printf("\n");
 
-    for (int i = 0; i < 4; i++) {
-        displayGrid(grid);  
+    for (int i = 0; i < 4; i++) { 
         placeShip(grid, ships[i], playerName);
+        printf("\n");
+        displayGrid(grid); 
     }
+    sleep(1);
     clearScreen();  
 }
 
@@ -197,29 +201,7 @@ void Checkifsunk(char grid[10][10], struct Ship ships[], int *sunkShips,int *smo
     }
 }
 
-void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[10],int difficulty,int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo){
-    displayGrid(opponentGrid);
-    printf("The posssible moves are: \n. fire\n");
-    if(*radarSweep>0){
-        printf(". Radar\n");
-    }
-    if(*smokeScreen>0){
-        printf(". Smoke\n");
-    }
-    if(*readyArtilleries == 1){
-        printf(". Artillery\n");
-    }
-    if(*readyTorpedo == 1){
-        printf(". Torpedo\n");
-    }
-
-    (*readyArtilleries) = 0;
-    (*readyTorpedo) = 0;
-    Checkifsunk(grid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,playerName);
-    displayGrid(opponentGrid);
-}
-
-void fire(char grid[10][10], char playerName[20], int x, int y, int difficulty){
+void fire(char grid[10][10], char playerName[10], int x, int y, int difficulty){
     if(grid[x][y] == 'S'){
         grid[x][y] = '*';
         printf("%s fired at %c%d. Hit!\n", playerName, y + 'A', x+1);
@@ -230,8 +212,7 @@ void fire(char grid[10][10], char playerName[20], int x, int y, int difficulty){
     }
 }
 
-void radarSweep(char grid[10][10], int x, int y, int *radarSweep){
-    if(*radarSweep){
+void radar(char grid[10][10], int x, int y, int *radarSweep){
         int found = 0;
         for(int i = x; i< x+2 && i<10;i++){
             for(int j = y; j< y+2 && j<10;j++){
@@ -247,13 +228,9 @@ void radarSweep(char grid[10][10], int x, int y, int *radarSweep){
         }else{
             printf("No enemy ships found.\n");
         }
-    }else{
-        printf("No radar uses left.\n");
     }
-}
 
-void smokeScreen(char grid[10][10], int *smokeScreen, int x, int y){
-    if(*smokeScreen > 0){
+void smoke(char grid[10][10], int x, int y,int *smokeScreen){
         for(int i = x; i< x+2 && i<10;i++){
             for(int j = y; j< y+2 && j<10;j++){
                 grid[i][j] = 'X';
@@ -261,13 +238,9 @@ void smokeScreen(char grid[10][10], int *smokeScreen, int x, int y){
         }
         (*smokeScreen)--;
         clearScreen();
-    }else{
-        printf("No available smoke screens.\n");
     }
-}
 
-void artillery(char grid[10][10], char playerName[20], int row, int col, int *artilleryReady, int difficulty) {
-    if (*artilleryReady) {
+void artillery(char grid[10][10], char playerName[10], int row, int col, int *artilleryReady, int difficulty) {
         for (int i = 0; i < row + 2 && i<10; i++) {
             for (int j = 0; j < col + 2 && j<10; j++) {
                 fire(grid, playerName, i, j, difficulty);            
@@ -275,10 +248,6 @@ void artillery(char grid[10][10], char playerName[20], int row, int col, int *ar
         }
             *artilleryReady = 0;
     }
-    else{
-        printf("Artillery not avialable.");
-    }
-}
 
 void torpedo(char grid[10][10], char playerName[10], int roworcol, int *readyTorpedo, int difficulty){
     if(*readyTorpedo){
@@ -297,6 +266,83 @@ void torpedo(char grid[10][10], char playerName[10], int roworcol, int *readyTor
     }else{
         printf("No available torpedo.\n");
     }
+}
+
+void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[10],int difficulty,int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo){
+    displayGrid(opponentGrid);
+    printf("The posssible moves are: \n. fire [coordinates]\n");
+    if(*radarSweep>0){
+        printf(". Radar [top-left coordinate]\n");
+    }
+    if(*smokeScreen>0){
+        printf(". Smoke [top-left coordinate]\n");
+    }
+    if(*readyArtilleries == 1){
+        printf(". Artillery [top-left coordinate]\n");
+    }
+    if(*readyTorpedo == 1){
+        printf(". Torpedo [row/column]\n");
+    }
+
+    char command[50];
+    printf("%s your move: ",playerName);
+    getchar();
+    fgets(command, sizeof(command), stdin);
+
+    int length = strlen(command);
+    for(int i = 0; i< length;i++){
+        command[i] = toupper(command[i]);
+    }
+
+    char move[20];
+    char target[5];
+    sscanf(command,"%s %s",move,target);
+    int row,col;
+    char roworcol;
+
+    if(strcmp(move,"FIRE")==0){
+        row = target[1]-'1';
+        col = target[0]-'A';
+        fire(opponentGrid,playerName, row, col, difficulty);
+    }else if(strcmp(move,"RADAR")==0){
+        if(*radarSweep>0){
+            row = target[1]-'1';
+            col = target[0]-'A';
+            radar(opponentGrid,row,col,radarSweep);
+        }else{
+            printf("No radar sweeps available.\n");
+        }
+    }else if(strcmp(move,"SMOKE")==0){
+        if(*smokeScreen>0){
+            row = target[1]-'1';
+            col = target[0]-'A';
+            smoke(opponentGrid,row,col,smokeScreen);
+        }else{
+            printf("No smoke screens available.\n");
+        }
+    }else if(strcmp(move,"ARTILLERY")==0){
+        if(*readyArtilleries>0){
+            row = target[1]-'1';
+            col = target[0]-'A';
+            artillery(opponentGrid,playerName,row,col,readyArtilleries,difficulty);
+        }else{
+            printf("Artilleries not available.\n");
+        }
+    }else if(strcmp(move,"TORPEDO")==0){
+        if(*readyTorpedo>0){
+            roworcol = target[0];
+            torpedo(opponentGrid,playerName,roworcol,readyTorpedo,difficulty);
+        }else{
+            printf("Torpedo not available.\n");
+        }
+    }else{
+        printf("Invalid move.You lost your turn.\n");
+    }
+
+    (*readyArtilleries) = 0;
+    (*readyTorpedo) = 0;
+    Checkifsunk(grid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,playerName);
+    displayGrid(opponentGrid);
 }
 
 
