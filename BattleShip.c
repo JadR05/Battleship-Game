@@ -333,63 +333,62 @@ void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[1
 
     char move[20];
     char target[5];
-    sscanf(command,"%s %s",move,target);
     int row,col;
 
-    if(strcmp(move,"FIRE")==0){
-        row = target[1]-'1';
-        col = target[0]-'A';
+
+    if(sscanf(command,"%s %s",move,target) == 2){
+        col = target[0] - 'A';
+
+        if(strlen(target)==2){
+            row = target[1] - '1';
+        }else if(strlen(target)==3 && target[1] == '1' && target[2] == '0'){
+            row = 9;
+        }else{
+            return;
+        }
+
         if (row < 0 || row >= 10 || col < 0 || col >= 10) {
             return;
         }
-        fire(grid,opponentGrid,playerName, row, col, difficulty);
-    }else if(strcmp(move,"RADAR")==0){
-        if(*radarSweep>0){
-            row = target[1]-'1';
-            col = target[0]-'A';
-        if (row < 0 || row >= 10 || col < 0 || col >= 10) {
-            return;
-        }
-        radar(grid,row,col,radarSweep);
-        }else{
-            printf("No radar sweeps available.\n");
-        }
-    }else if(strcmp(move,"SMOKE")==0){
-        if(*smokeScreen>0){
-            row = target[1]-'1';
-            col = target[0]-'A';
-            if (row < 0 || row >= 10 || col < 0 || col >= 10) {
-            return;
-            }
-            smoke(grid,row,col,smokeScreen);
-        }else{
-            printf("No smoke screens available.\n");
-        }
-    }else if(strcmp(move,"ARTILLERY")==0){
-        if(*readyArtilleries>0){
-            row = target[1]-'1';
-            col = target[0]-'A';
-            if (row < 0 || row >= 10 || col < 0 || col >= 10) {
-            return;
-            }
-            artillery(grid,opponentGrid,playerName,row,col,readyArtilleries,difficulty);
-        }else{
-            printf("Artilleries not available.\n");
-        }
-    }else if(strcmp(move,"TORPEDO")==0){
-        if(*readyTorpedo>0){
-            torpedo(grid,opponentGrid,playerName,target,readyTorpedo,difficulty);
-        }else{
-            printf("Torpedo not available.\n");
-        }
-    }else{
-        printf("Invalid move.You lost your turn.\n");
-    }
-    displayGrid(opponentGrid);
     
-    (*readyArtilleries) = 0;
-    (*readyTorpedo) = 0;
-    Checkifsunk(grid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,playerName);
+        if(strcmp(move,"FIRE")==0){  
+            fire(grid,opponentGrid,playerName, row, col, difficulty);
+        }else if(strcmp(move,"RADAR")==0){
+            if(*radarSweep>0){
+            if (row < 0 || row >= 10 || col < 0 || col >= 10) {
+                return;
+            }
+            radar(grid,row,col,radarSweep);
+            }else{
+                printf("No radar sweeps available.\n");
+            }
+        }else if(strcmp(move,"SMOKE")==0){
+            if(*smokeScreen>0){
+                smoke(grid,row,col,smokeScreen);
+            }else{
+                printf("No smoke screens available.\n");
+            }
+        }else if(strcmp(move,"ARTILLERY")==0){
+            if(*readyArtilleries>0){
+                artillery(grid,opponentGrid,playerName,row,col,readyArtilleries,difficulty);
+            }else{
+                printf("Artilleries not available.\n");
+            }
+        }else if(strcmp(move,"TORPEDO")==0){
+            if(*readyTorpedo>0){
+                torpedo(grid,opponentGrid,playerName,target,readyTorpedo,difficulty);
+            }else{
+                printf("Torpedo not available.\n");
+            }
+        }else{
+            printf("Invalid move.You lost your turn.\n");
+        }
+        displayGrid(opponentGrid);
+        
+        (*readyArtilleries) = 0;
+        (*readyTorpedo) = 0;
+        Checkifsunk(grid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,playerName);
+    }
 }
 
 
