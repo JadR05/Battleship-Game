@@ -203,16 +203,16 @@ void playerPlaceShips(char grid[10][10], char playerName[10]) {
 
 
 void fire(char grid[10][10],char opponentGrid[10][10],char playerName[10],int row,int col,int difficulty){
-    if(grid[row][col] == 'C' || grid[row][col] == 'B' || grid[row][col] == 'D' || grid[row][col] == 'S'){
-        opponentGrid[row][col] = '*';
-        printf("Hit!\n");
-    }else if(grid[row][col] == '*'){
-        printf("You already hit this spot.\n");
-    }else{
+    if(grid[row][col] == '~'){
         if(difficulty == 1){
             opponentGrid[row][col] = 'o';
         }
         printf("Miss!\n");
+    }else if(grid[row][col] == '*'){
+        printf("You already hit this spot.\n");
+    }else{
+        opponentGrid[row][col] = '*';
+        printf("Hit!\n");
     }
 }
 
@@ -309,7 +309,7 @@ void Checkifsunk(char grid[10][10],char opponentGrid[10][10],struct Ship ships[]
 
 
 
-void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[10], char opponentName[10], int difficulty, int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo,int *usedTorpedo,int hits[4], int sunkShipsFlag[4]) {
+void processMove(char grid[10][10], char opponentGrid[10][10],char myGrid[10][10],char playerName[10], char opponentName[10], int difficulty, int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo,int *usedTorpedo,int hits[4], int sunkShipsFlag[4]) {
     displayGrid(opponentGrid);
     printf("The possible moves are:\n. Fire [coordinates]\n");
     if (*radarSweep > 0) {
@@ -377,7 +377,7 @@ void processMove(char grid[10][10], char opponentGrid[10][10], char playerName[1
                 }
             } else if (strcmp(move, "SMOKE") == 0) {
                 if ((*smokeScreen) > 0) {
-                    smoke(grid, row, col, smokeScreen);
+                    smoke(myGrid, row, col, smokeScreen);
                 } else {
                     printf("No smoke screens available.\n");
                 }
@@ -428,10 +428,10 @@ int main() {
     int currentPlayer = startingPlayer;
     while(sunkShips1 < 4 && sunkShips2 < 4){
         if(currentPlayer == 0){
-            processMove(grid2,grid3,name1,name2,difficulty,&sunkShips1,&radarSweep1,&smokeScreen1,&readyArtilleries1,&readyTorpedo1,&usedTorpedo1,hits1,sunkShipsFlags1);
+            processMove(grid2,grid3,grid1,name1,name2,difficulty,&sunkShips1,&radarSweep1,&smokeScreen1,&readyArtilleries1,&readyTorpedo1,&usedTorpedo1,hits1,sunkShipsFlags1);
             currentPlayer = 1;
         }else{
-            processMove(grid1,grid4,name2,name1,difficulty,&sunkShips2,&radarSweep2,&smokeScreen2,&readyArtilleries2,&readyTorpedo2,&usedTorpedo2,hits2,sunkShipsFlags2);
+            processMove(grid1,grid4,grid2,name2,name1,difficulty,&sunkShips2,&radarSweep2,&smokeScreen2,&readyArtilleries2,&readyTorpedo2,&usedTorpedo2,hits2,sunkShipsFlags2);
             currentPlayer = 0;
         }
     }
