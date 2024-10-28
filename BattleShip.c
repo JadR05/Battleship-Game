@@ -202,7 +202,7 @@ void playerPlaceShips(char grid[10][10], char playerName[10]) {
 }
 
 
-void fire(char grid[10][10],char opponentGrid[10][10],char playerName[10],int row,int col,int difficulty){
+void fire(char grid[10][10],char opponentGrid[10][10],int row,int col,int difficulty){
     if(grid[row][col] == '~'){
         if(difficulty == 1){
             opponentGrid[row][col] = 'o';
@@ -243,26 +243,26 @@ void smoke(char grid[10][10],int row,int col,int *smokeScreen){
     (*smokeScreen)--;
 }
 
-void artillery(char grid[10][10],char opponentGrid[10][10],char playerName[10],int row,int col,int *artilleryReady,int difficulty) {
+void artillery(char grid[10][10],char opponentGrid[10][10],int row,int col,int *artilleryReady,int difficulty) {
     for (int i = row; i < row + 2 && i<10; i++) {
         for (int j = col; j < col + 2 && j<10; j++) {
-           fire(grid,opponentGrid,playerName,i,j,difficulty);            
+           fire(grid,opponentGrid,i,j,difficulty);            
         }
     }
 }
 
-void torpedo(char grid[10][10],char opponentGrid[10][10],char playerName[10],char target[],int *readyTorpedo,int difficulty){
+void torpedo(char grid[10][10],char opponentGrid[10][10],char target[],int *readyTorpedo,int difficulty){
     if(target[0]>='A' &&  target[0]<='J'){
         int col = target[0] -'A';
         for(int i = 0;i<10;i++){
-            fire(grid,opponentGrid,playerName,i,col,difficulty);
+            fire(grid,opponentGrid,i,col,difficulty);
         }
     }else {
         int row = atoi(target);
         if (row >= 1 && row <= 10){
             row--;
             for(int i = 0;i<10;i++){
-                fire(grid,opponentGrid,playerName,row,i,difficulty);
+                fire(grid,opponentGrid,row,i,difficulty);
             }
         } 
     }
@@ -341,7 +341,7 @@ void processMove(char grid[10][10], char opponentGrid[10][10],char myGrid[10][10
     if (sscanf(command, "%s %s", move, target) == 2) {
         if (strcmp(move, "TORPEDO") == 0 && strlen(target) == 1) {
             if ((*readyTorpedo) == 1 && (*usedTorpedo) == 0) {
-                torpedo(grid, opponentGrid, playerName, target, readyTorpedo, difficulty);
+                torpedo(grid, opponentGrid,target, readyTorpedo, difficulty);
                 (*usedTorpedo) = 1;
             } else {
                 printf("Torpedo not available.\n");
@@ -368,22 +368,22 @@ void processMove(char grid[10][10], char opponentGrid[10][10],char myGrid[10][10
             }
 
             if (strcmp(move, "FIRE") == 0) {
-                fire(grid, opponentGrid, playerName, row, col, difficulty);
+                fire(grid,opponentGrid,row,col,difficulty);
             } else if (strcmp(move, "RADAR") == 0) {
                 if ((*radarSweep) > 0) {
-                    radar(grid, row, col, radarSweep);
+                    radar(grid,row,col,radarSweep);
                 } else {
                     printf("No radar sweeps available.\n");
                 }
             } else if (strcmp(move, "SMOKE") == 0) {
                 if ((*smokeScreen) > 0) {
-                    smoke(myGrid, row, col, smokeScreen);
+                    smoke(myGrid,row,col,smokeScreen);
                 } else {
                     printf("No smoke screens available.\n");
                 }
             } else if (strcmp(move, "ARTILLERY") == 0) {
                 if ((*readyArtilleries) == 1) {
-                    artillery(grid, opponentGrid, playerName, row, col, readyArtilleries, difficulty);
+                    artillery(grid,opponentGrid,row,col,readyArtilleries,difficulty);
                 } else {
                     printf("Artillery not available.\n");
                 }
@@ -417,7 +417,7 @@ int main() {
     initializeGrid(grid3);// Player 1 view of Player 2 grid
     initializeGrid(grid4);// Player 2 view of Player 1 grid
 
-   getchar();
+    getchar();
     if(startingPlayer==0){
         playerPlaceShips(grid1, name1);
         playerPlaceShips(grid2, name2);
