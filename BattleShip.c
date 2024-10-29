@@ -345,7 +345,7 @@ void processMove(char grid[10][10], char opponentGrid[10][10],char myGrid[10][10
     int row, col;
 
     if (sscanf(command, "%s %s", move, target) == 2) {
-        if (strcmp(move, "TORPEDO") == 0 && strlen(target) == 1) {
+        if (strcmp(move, "TORPEDO") == 0 && (strlen(target) == 1 || strlen(target)==2)) {
             if ((*readyTorpedo) == 1 && (*usedTorpedo) == 0) {
                 torpedo(grid, opponentGrid,target, readyTorpedo, difficulty);
                 (*usedTorpedo) = 1;
