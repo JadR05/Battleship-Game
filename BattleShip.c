@@ -97,6 +97,7 @@ void getPlayerName(char playerName[10]){
 }
 
 int randomChooser(char playerName[10]){
+    srand(time(0));
     int x = rand() % 2;
     if(x == player){
         printf("%s, you will start first.\n\n", playerName);
@@ -265,11 +266,11 @@ void fire(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Grid_Siz
     }
 }
 
-void radar(char shipGrid[Grid_Size][Grid_Size], int row, int col, int *radarSweep){
+void radar(char shipGrid[Grid_Size][Grid_Size], int smokeScreenGrid[Grid_Size][Grid_Size],int row, int col, int *radarSweep){
     int found = 0;
     for(int i = row; i < row + 2 && i < Grid_Size; i++){
         for(int j = col; j < col + 2 && j < Grid_Size; j++){
-            if(shipGrid[row][col] == 'C' || shipGrid[row][col] == 'B' || shipGrid[row][col] == 'D' || shipGrid[row][col] == 'S'){
+            if(smokeScreenGrid[i][j] == 0 && (shipGrid[i][j] == 'C' || shipGrid[i][j] == 'B' || shipGrid[i][j] == 'D' || shipGrid[i][j] == 'S')){
                 found = 1;
                 break;
             }
@@ -283,10 +284,10 @@ void radar(char shipGrid[Grid_Size][Grid_Size], int row, int col, int *radarSwee
     }
 }
 
-void smoke(char grid[Grid_Size][Grid_Size], int row, int col, int *smokeScreen){
+void smoke(int smokeScreenGrid[Grid_Size][Grid_Size],int row, int col, int *smokeScreen){
     for(int i = row; i < row + 2 && i < Grid_Size; i++){
         for(int j = col; j < col + 2 && j < Grid_Size; j++){
-            grid[i][j] = 'X';
+            smokeScreenGrid[i][j] = 1;
         }
     }
     (*smokeScreen)--;
@@ -304,7 +305,7 @@ void torpedo(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Grid_
     if(target[0] >= 'A' && target[0] <= 'J'){
         int col = target[0] - 'A';
         for(int i = 0; i < Grid_Size; i++){
-            fire(shipGrid, viewGrid, i, col, difficulty);
+            fire(shipGrid, viewGrid, i, col, difficulty); 
         }
     }else{
         int row = atoi(target);
@@ -313,6 +314,14 @@ void torpedo(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Grid_
             for(int i = 0; i < Grid_Size; i++){
                 fire(shipGrid, viewGrid, row, i, difficulty);
             }
+        }
+    }
+}
+
+void clearSmokeScreen(int smokeScreenGrid[Grid_Size][Grid_Size]){
+    for(int i = 0;i < Grid_Size;i++){
+        for(int j = 0;j < Grid_Size;j++){
+            smokeScreenGrid[i][j] = 0;
         }
     }
 }
@@ -356,7 +365,7 @@ void Checkifsunk(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][G
     }
 }
 
-void processMove(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Grid_Size], char myGrid[Grid_Size][Grid_Size], char playerName[10], char opponentName[10], int difficulty, int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo, int *usedTorpedo, int hits[4], int sunkShipsFlag[4]){
+void processMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_Size],char myGrid[Grid_Size][Grid_Size],int smokeScreenGrid[Grid_Size][Grid_Size],char playerName[10], char opponentName[10], int difficulty, int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo, int *usedTorpedo, int hits[4], int sunkShipsFlag[4]){
     displayGrid(viewGrid);
     printf("The possible moves are:\n. Fire [coordinates]\n");
     if(*radarSweep > 0){
@@ -388,7 +397,7 @@ void processMove(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][G
     if(sscanf(command, "%s %s", move, target) == 2){
         if(strcmp(move, "TORPEDO") == 0 && (strlen(target) == 1 || strlen(target) == 2)){
             if((*readyTorpedo) == 1 && (*usedTorpedo) == 0){
-                torpedo(shipGrid, viewGrid, target, difficulty);
+                torpedo(shipGrid,viewGrid,target,difficulty);
                 (*usedTorpedo) = 1;
             }else{
                 printf("Torpedo not available.\n");
@@ -418,19 +427,19 @@ void processMove(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][G
                 fire(shipGrid, viewGrid, row, col, difficulty);
             }else if(strcmp(move, "RADAR") == 0){
                 if((*radarSweep) > 0){
-                    radar(shipGrid, row, col, radarSweep);
+                    radar(shipGrid,smokeScreenGrid,row,col,radarSweep);
                 }else{
                     printf("No radar sweeps available.\n");
                 }
             }else if(strcmp(move, "SMOKE") == 0){
                 if((*smokeScreen) > 0){
-                    smoke(myGrid, row, col, smokeScreen);
+                    smoke(smokeScreenGrid,row,col,smokeScreen);
                 }else{
                     printf("No smoke screens available.\n");
                 }
             }else if(strcmp(move, "ARTILLERY") == 0){
                 if((*readyArtilleries) == 1){
-                    artillery(shipGrid, viewGrid, row, col, difficulty);
+                    artillery(shipGrid,viewGrid,row,col,difficulty);
                 }else{
                     printf("Artillery not available.\n");
                 }
@@ -441,7 +450,7 @@ void processMove(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][G
         displayGrid(viewGrid);
         (*readyArtilleries) = 0;
         (*readyTorpedo) = 0;
-        Checkifsunk(shipGrid, viewGrid, ships, sunkShips, smokeScreen, readyArtilleries, readyTorpedo, playerName, opponentName, hits, sunkShipsFlag);
+        Checkifsunk(shipGrid,viewGrid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,playerName,opponentName,hits,sunkShipsFlag);
     }else{
         printf("Invalid command format.\n");
         (*readyArtilleries) = 0;
@@ -463,12 +472,6 @@ void addHit(Coordinates hitstack[], int *hitcount, int row, int col){
     hitstack[*hitcount].row = row;
     hitstack[*hitcount].col = col;
     (*hitcount)++;
-}
-
-void removeHit(Coordinates hitstack[], int *hitcount){
-    if(*hitcount>0){
-        (*hitcount)--;
-    }
 }
 
 void markFired(Coordinates unfiredCells[], int *unfiredcount, int row, int col){
@@ -646,10 +649,15 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
             row = target.row;
             col = target.col;
         }
+
         if(col == 9){
             col = col-2;
         }else{
             col++;
+        }
+
+        if(row == 9){
+            row--;
         }
         botArtilleryAttack(shipGrid,viewGrid,hitstack,&hitcount,unfiredCells,&unfiredcount,row,col,difficulty);
     }else if(hitcount>0){
@@ -671,7 +679,7 @@ int main(){
     char botName[10] = "Bot";
     char playerGrid[Grid_Size][Grid_Size], botGrid[Grid_Size][Grid_Size];// Grids showing the ships
     char playerViewGrid[Grid_Size][Grid_Size], botViewGrid[Grid_Size][Grid_Size]; // Grids for playing the game
-
+    int  smokeScreenGrid[Grid_Size][Grid_Size] = {0};
     int difficulty = getDifficulty();
     getPlayerName(playerName);
 
@@ -704,13 +712,14 @@ int main(){
 
     int currentPlayer = startingPlayer;
     while (sunkShips1 < numOfShips && sunkShips2 < numOfShips){
-        if (currentPlayer == 0){
-            processMove(botGrid, playerViewGrid, playerGrid, playerName, botName, difficulty, &sunkShips1, &radarSweep1, &smokeScreen1, &readyArtilleries1, &readyTorpedo1, &usedTorpedo1, hits1, sunkShipsFlags1);
+        if (currentPlayer == player){
+            processMove(botGrid,playerViewGrid,playerGrid,smokeScreenGrid,playerName,botName,difficulty, &sunkShips1, &radarSweep1, &smokeScreen1, &readyArtilleries1, &readyTorpedo1, &usedTorpedo1, hits1, sunkShipsFlags1);
             currentPlayer = 1;
         }else{
             printf("%s's turn:\n",botName);
-            botMove(playerGrid, botViewGrid, botGrid, copyPlayerGrid, botName, playerName, difficulty, &sunkShips2, &radarSweep2, &smokeScreen2, &readyArtilleries2, &readyTorpedo2, &usedTorpedo2, hits2, sunkShipsFlags2);
+            botMove(playerGrid,botViewGrid,botGrid,copyPlayerGrid,botName,playerName,difficulty, &sunkShips2, &radarSweep2, &smokeScreen2, &readyArtilleries2, &readyTorpedo2, &usedTorpedo2, hits2, sunkShipsFlags2);
             currentPlayer = 0;
+            clearSmokeScreen(smokeScreenGrid);
         }
     }
 
