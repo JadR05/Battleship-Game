@@ -11,7 +11,6 @@
 #define player 0
 #define numOfShips 4
 
-// Variables to track
 int sunkShips1 = 0, sunkShips2 = 0;
 int radarSweep1 = 3, radarSweep2 = 3;
 int smokeScreen1 = 0, smokeScreen2 = 0;
@@ -34,6 +33,12 @@ struct Ship ships[] =
     {"Battleship", 4},
     {"Destroyer", 3},
     {"Submarine", 2},
+};
+
+typedef struct coordinates Coordinates;
+struct coordinates{
+    int row;
+    int col;
 };
 
 void initializeGrid(char grid[Grid_Size][Grid_Size]){
@@ -92,7 +97,6 @@ void getPlayerName(char playerName[10]){
 }
 
 int randomChooser(char playerName[10]){
-    srand(time(0));
     int x = rand() % 2;
     if(x == player){
         printf("%s, you will start first.\n\n", playerName);
@@ -288,7 +292,7 @@ void smoke(char grid[Grid_Size][Grid_Size], int row, int col, int *smokeScreen){
     (*smokeScreen)--;
 }
 
-void artillery(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Grid_Size], int row, int col, int *artilleryReady, int difficulty){
+void artillery(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Grid_Size], int row, int col, int difficulty){
     for(int i = row; i < row + 2 && i < Grid_Size; i++){
         for(int j = col; j < col + 2 && j < Grid_Size; j++){
             fire(shipGrid, viewGrid, i, j, difficulty);
@@ -296,7 +300,7 @@ void artillery(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Gri
     }
 }
 
-void torpedo(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Grid_Size], char target[], int *readyTorpedo, int difficulty){
+void torpedo(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Grid_Size], char target[], int difficulty){
     if(target[0] >= 'A' && target[0] <= 'J'){
         int col = target[0] - 'A';
         for(int i = 0; i < Grid_Size; i++){
@@ -384,7 +388,7 @@ void processMove(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][G
     if(sscanf(command, "%s %s", move, target) == 2){
         if(strcmp(move, "TORPEDO") == 0 && (strlen(target) == 1 || strlen(target) == 2)){
             if((*readyTorpedo) == 1 && (*usedTorpedo) == 0){
-                torpedo(shipGrid, viewGrid, target, readyTorpedo, difficulty);
+                torpedo(shipGrid, viewGrid, target, difficulty);
                 (*usedTorpedo) = 1;
             }else{
                 printf("Torpedo not available.\n");
@@ -426,7 +430,7 @@ void processMove(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][G
                 }
             }else if(strcmp(move, "ARTILLERY") == 0){
                 if((*readyArtilleries) == 1){
-                    artillery(shipGrid, viewGrid, row, col, readyArtilleries, difficulty);
+                    artillery(shipGrid, viewGrid, row, col, difficulty);
                 }else{
                     printf("Artillery not available.\n");
                 }
@@ -443,6 +447,223 @@ void processMove(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][G
         (*readyArtilleries) = 0;
         (*readyTorpedo) = 0;
     }
+}
+
+void initializeUnfiredCells(Coordinates unfiredCells[], int *unfiredcount){
+    for(int row = 0; row < Grid_Size; row++){
+        for(int col = 0; col < Grid_Size; col++){
+            unfiredCells[*unfiredcount].row = row;
+            unfiredCells[*unfiredcount].col = col;
+            (*unfiredcount)++;
+        }
+    }
+}
+
+void addHit(Coordinates hitstack[], int *hitcount, int row, int col){
+    hitstack[*hitcount].row = row;
+    hitstack[*hitcount].col = col;
+    (*hitcount)++;
+}
+
+void removeHit(Coordinates hitstack[], int *hitcount){
+    if(*hitcount>0){
+        (*hitcount)--;
+    }
+}
+
+void markFired(Coordinates unfiredCells[], int *unfiredcount, int row, int col){
+    for(int i = 0; i < (*unfiredcount); i++){
+        if(unfiredCells[i].row == row && unfiredCells[i].col == col){
+            unfiredCells[i] = unfiredCells[--(*unfiredcount)];
+            break;
+        }
+    }
+}
+
+void removeHitsForSunkShip(Coordinates hitstack[],int *hitcount,char shipGrid[Grid_Size][Grid_Size],int sunkShipsFlag[4]){
+    char shipID;
+    for(int i = 0;i < numOfShips;i++){
+        if(sunkShipsFlag[i] == 1){
+            shipID = ships[i].name[0];
+            int j = 0;
+            while(j < *hitcount){
+                if(shipGrid[hitstack[j].row][hitstack[j].col]==shipID){
+                    for (int k = j; k < *hitcount - 1; k++) {
+                        hitstack[k] = hitstack[k + 1];
+                    }
+                    (*hitcount)--;
+                }else{
+                    j++;
+                }
+            }
+            sunkShipsFlag[i] = 2;
+        }
+    }
+}
+
+void botRandomFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_Size],Coordinates hitstack[],int *hitcount,Coordinates unfiredCells[],int *unfiredcount,int difficulty){
+    int randomindex = rand() % (*unfiredcount);
+    Coordinates target = unfiredCells[randomindex];
+    int row = target.row;
+    int col = target.col;
+
+    fire(shipGrid,viewGrid,row,col,difficulty);
+    markFired(unfiredCells,unfiredcount,row,col);
+    if(viewGrid[row][col] == '*'){
+        addHit(hitstack,hitcount,row,col);
+    }
+}
+
+void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_Size],Coordinates hitstack[],int *hitcount,Coordinates unfiredCells[],int *unfiredcount,int *firingdirection,Coordinates *initialHit,int difficulty){
+    int fired = 0;
+
+    Coordinates target;
+    if((*firingdirection) == -1){
+        (*initialHit)  = hitstack[*hitcount-1];
+        target = *initialHit;
+    }else{
+        target = hitstack[*hitcount-1];
+    }
+
+    int direction[4][2] = {{-1,0},{1,0},{0,-1},{0,1}};//Up,Down,Left,Right
+    int oppositeDirections[4] = {1,0,3,2};
+
+    if((*firingdirection) != -1){
+        int newrow = target.row + direction[*firingdirection][0];
+        int newcol = target.col + direction[*firingdirection][1];
+        if(newrow >= 0 && newrow < Grid_Size && newcol >= 0 && newcol < Grid_Size && viewGrid[newrow][newcol] == '~'){
+            fire(shipGrid,viewGrid,newrow,newcol,difficulty);
+            markFired(unfiredCells,unfiredcount,newrow,newcol);
+            fired = 1;
+
+            if(viewGrid[newrow][newcol] == '*'){
+                addHit(hitstack,hitcount,newrow,newcol);
+            }else{
+                *firingdirection = -1;
+            }
+        }else{
+            *firingdirection = -1;
+        }
+    }
+    if(!fired){
+        for(int i = 0;i < 4;i++){
+            if(i == (*firingdirection)){
+                continue;
+            }
+                
+            int newrow = (*initialHit).row + direction[i][0];
+            int newcol = (*initialHit).col + direction[i][1];
+            if(newrow >= 0 && newrow < Grid_Size && newcol >= 0 && newcol < Grid_Size && viewGrid[newrow][newcol] == '~'){
+                fire(shipGrid,viewGrid,newrow,newcol,difficulty);
+                markFired(unfiredCells,unfiredcount,newrow,newcol);
+                fired = 1;
+
+                if(viewGrid[newrow][newcol] == '*'){
+                    addHit(hitstack,hitcount,newrow,newcol);
+                    (*firingdirection) = i;
+                }
+                break;
+            }
+        }
+    }
+}
+
+void botArtilleryAttack(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_Size],Coordinates hitstack[],int *hitcount,Coordinates unfiredCells[],int *unfiredcount,int row,int col,int difficulty){
+    for(int i = row; i < row + 2 && i < Grid_Size; i++){
+        for(int j = col; j < col + 2 && j < Grid_Size; j++){
+            fire(shipGrid, viewGrid, i, j, difficulty);
+            markFired(unfiredCells,unfiredcount,i,j);
+            if(viewGrid[i][j] == '*'){
+                addHit(hitstack,hitcount,i,j);
+            }
+        }
+    }
+}
+
+void botTorpedoAttack(char shipGrid[Grid_Size][Grid_Size], char viewGrid[Grid_Size][Grid_Size],Coordinates hitstack[],int *hitcount,Coordinates unfiredCells[],int *unfiredcount,int roworcol,int isrow,int difficulty){
+    if(isrow){
+        for(int i = 0;i<Grid_Size;i++){
+            fire(shipGrid,viewGrid,roworcol,i,difficulty);
+            markFired(unfiredCells,unfiredcount,roworcol,i);
+            if(viewGrid[roworcol][i] == '*'){
+                addHit(hitstack,hitcount,roworcol,i);
+            }
+        }
+    }else{
+        for(int i = 0;i<Grid_Size;i++){
+            fire(shipGrid,viewGrid,i,roworcol,difficulty);
+            markFired(unfiredCells,unfiredcount,i,roworcol);
+            if(viewGrid[i][roworcol] == '*'){
+                addHit(hitstack,hitcount,i,roworcol);
+            }
+        }
+    }
+}
+
+void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_Size],char myGrid[Grid_Size][Grid_Size],char copyPlayerGrid[Grid_Size][Grid_Size], char botName[10], char opponentName[10], int difficulty, int *sunkShips, int *radarSweep, int *smokeScreen, int *readyArtilleries, int *readyTorpedo, int *usedTorpedo, int hits[4], int sunkShipsFlag[4]){
+    displayGrid(viewGrid);
+
+    static Coordinates hitstack[Grid_Size*Grid_Size];
+    static int hitcount = 0;
+
+    static Coordinates unfiredCells[Grid_Size*Grid_Size];
+    static int unfiredcount = 0;
+
+    static int firingdirection = -1;//-1(Not set),0(Up),1(Down),2(Left),3(Right)
+    static Coordinates initialHit;
+
+    if(unfiredcount == 0){
+        initializeUnfiredCells(unfiredCells,&unfiredcount);
+    }
+
+    if(*readyTorpedo){
+        printf("Bot uses Artillery!\n\n");
+        int row,col;
+        int isRow = rand()%2;
+        if(hitcount>0){
+            row = hitstack[0].row;
+            col = hitstack[0].col;
+        }else{
+            int randomindex = rand() % unfiredcount;
+            Coordinates target = unfiredCells[randomindex];
+            row = target.row;
+            col = target.col;
+        }
+        if(isRow){
+            botTorpedoAttack(shipGrid,viewGrid,hitstack,&hitcount,unfiredCells,&unfiredcount,row,isRow,difficulty);
+        }else{
+            botTorpedoAttack(shipGrid,viewGrid,hitstack,&hitcount,unfiredCells,&unfiredcount,col,isRow,difficulty);
+        }
+    }else if(*readyArtilleries){
+        printf("Bot uses Artillery!\n\n");
+        int row,col;
+        if(hitcount>0){
+            row = hitstack[0].row;
+            col = hitstack[0].col;
+        }else{
+            int randomindex = rand() % unfiredcount;
+            Coordinates target = unfiredCells[randomindex];
+            row = target.row;
+            col = target.col;
+        }
+        if(col == 9){
+            col = col-2;
+        }else{
+            col++;
+        }
+        botArtilleryAttack(shipGrid,viewGrid,hitstack,&hitcount,unfiredCells,&unfiredcount,row,col,difficulty);
+    }else if(hitcount>0){
+        printf("Bot uses advanced fire.\n");
+        botAdvancedFire(shipGrid,viewGrid,hitstack,&hitcount,unfiredCells,&unfiredcount,&firingdirection,&initialHit,difficulty);    
+    }else if(unfiredcount > 0){
+        printf("Bot uses fire.\n");
+        botRandomFire(shipGrid,viewGrid,hitstack,&hitcount,unfiredCells,&unfiredcount,difficulty);
+    }
+    displayGrid(viewGrid);
+    (*readyArtilleries) = 0;
+    (*readyTorpedo) = 0;
+    Checkifsunk(shipGrid,viewGrid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,botName,opponentName,hits,sunkShipsFlag); 
+    removeHitsForSunkShip(hitstack,&hitcount,copyPlayerGrid,sunkShipsFlag);
 }
 
 int main(){
@@ -465,11 +686,20 @@ int main(){
     if (startingPlayer == player){
         playerPlaceShips(playerGrid, playerName);
         botPlaceShips(botGrid);
-        printf("Bot have placed his ships.\n");
+        sleep(1);
+        printf("Bot have placed his ships.\n\n");
     }else{
         botPlaceShips(botGrid);
+        sleep(1);
         printf("Bot have placed his ships.\nNow, it is your turn %s.\n",playerName);
         playerPlaceShips(playerGrid, playerName);
+    }
+
+    char copyPlayerGrid [Grid_Size][Grid_Size];
+    for(int i = 0;i<Grid_Size;i++){
+        for(int j = 0;j<Grid_Size;j++){
+            copyPlayerGrid[i][j] = playerGrid[i][j];
+        }
     }
 
     int currentPlayer = startingPlayer;
@@ -477,9 +707,9 @@ int main(){
         if (currentPlayer == 0){
             processMove(botGrid, playerViewGrid, playerGrid, playerName, botName, difficulty, &sunkShips1, &radarSweep1, &smokeScreen1, &readyArtilleries1, &readyTorpedo1, &usedTorpedo1, hits1, sunkShipsFlags1);
             currentPlayer = 1;
-        }
-        else{
-            processMove(playerGrid, botViewGrid, botGrid, botName, playerName, difficulty, &sunkShips2, &radarSweep2, &smokeScreen2, &readyArtilleries2, &readyTorpedo2, &usedTorpedo2, hits2, sunkShipsFlags2);
+        }else{
+            printf("%s's turn:\n",botName);
+            botMove(playerGrid, botViewGrid, botGrid, copyPlayerGrid, botName, playerName, difficulty, &sunkShips2, &radarSweep2, &smokeScreen2, &readyArtilleries2, &readyTorpedo2, &usedTorpedo2, hits2, sunkShipsFlags2);
             currentPlayer = 0;
         }
     }
