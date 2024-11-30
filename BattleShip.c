@@ -11,6 +11,7 @@
 #define player 0
 #define bot 1
 #define numOfShips 4
+#define maxShipSize 5
 
 int sunkShips1 = 0, sunkShips2 = 0;
 int radarSweep1 = 3, radarSweep2 = 3;
@@ -44,7 +45,7 @@ struct coordinates{
 typedef struct ShipTargetingInfo ShipTargetingInfo;
 struct  ShipTargetingInfo{
     char shipID;
-    Coordinates hitstack[5];
+    Coordinates hitstack[maxShipSize];
     int hitcount;
     int firingdirection;
 };
@@ -1024,7 +1025,7 @@ int main(){
     if (sunkShips1 == numOfShips){
         printf("%s wins.\n", playerName);
     }else{
-        printf("Bot wins.\n");
+        printf("%s wins.\n", botName);
     }
 
     return 0;
