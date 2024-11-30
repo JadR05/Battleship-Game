@@ -283,6 +283,9 @@ void radar(char shipGrid[Grid_Size][Grid_Size],int smokeScreenGrid[Grid_Size][Gr
                 break;
             }
         }
+        if(found){
+            break;
+        }
     }
     (*radarSweep)--;
     if (found){
@@ -711,6 +714,8 @@ void botRandomFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][
     randomCoordinates(unfiredCells,*unfiredcount,&row,&col);
 
     fire(shipGrid,viewGrid,row,col,difficulty);
+    char c = 'A' + col;
+    printf("Bot uses rondom fire at %c%d",c,row+1);
     markFired(unfiredCells,unfiredcount,firedCells,row,col);
     if(viewGrid[row][col] == '*'){
         int i = checkTypeOfShip(copyPlayerGrid,row,col);
@@ -727,6 +732,7 @@ void botFireOnRadarArea(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_S
                 row = i;
                 col = j;
                 found = 1;
+                break;
             }
         }
         if(found){
@@ -734,6 +740,8 @@ void botFireOnRadarArea(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_S
         }
     }
 
+    char c = 'A' + col;
+    printf("Bot uses fire on radar Area at %c%d\n",c,row+1);
     fire(shipGrid,viewGrid,row,col,difficulty);
     radarGrid[row][col] = 0;
     markFired(unfiredCells,unfiredcount,firedCells,row,col);
@@ -759,7 +767,9 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
                 int newCol = target.col + direction[firingdirection][1];
                 
                 if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
-                    fire(shipGrid, viewGrid, newRow, newCol, difficulty);
+                    char c = 'A' + newCol;
+                    printf("Bot uses advanced firing at %c%d\n",c,newRow+1);
+                    fire(shipGrid,viewGrid,newRow,newCol,difficulty);
                     fired = 1;
                     radarGrid[newRow][newCol] = 0;
                     markFired(unfiredCells,unfiredcount,firedCells,newRow,newCol);
@@ -778,6 +788,8 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
                     int newCol = initialHit.col + direction[dir][1];
                     
                     if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
+                        char c = 'A' + newCol;
+                        printf("Bot uses advanced firing at %c%d\n",c,newRow+1);
                         fire(shipGrid, viewGrid, newRow, newCol, difficulty);
                         fired = 1;
                         radarGrid[newRow][newCol] = 0;
@@ -800,19 +812,22 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
 
 int botRadar(char shipGrid[Grid_Size][Grid_Size],int smokeScreenGrid[Grid_Size][Grid_Size],int radarGrid[Grid_Size][Grid_Size],int row,int col,int *radarSweep){
     int found = 0;
-    for(int i = row; i < row + 2 && i < Grid_Size; i++){
-        for(int j = col; j < col + 2 && j < Grid_Size; j++){
+    for(int i = row;i < row + 2 && i < Grid_Size;i++){
+        for(int j = col;j < col + 2 && j < Grid_Size;j++){
+            printf("%d,%c\n",smokeScreenGrid[i][j], shipGrid[i][j]);
             if(smokeScreenGrid[i][j] == 0 && (shipGrid[i][j] == 'C' || shipGrid[i][j] == 'B' || shipGrid[i][j] == 'D' || shipGrid[i][j] == 'S')){
                 found = 1;
                 break;
             }
         }
+        if(found){
+            break;
+        }
     }
     (*radarSweep)--;
     if (found){
-        printf("found\n");
-        for(int i = row; i < row + 2 && i < Grid_Size; i++){
-            for(int j = col; j < col + 2 && j < Grid_Size; j++){
+        for(int i = row;i < row + 2 && i < Grid_Size;i++){
+            for(int j = col;j < col + 2 && j < Grid_Size;j++){
                 radarGrid[i][j] = 1;
             }
         }
@@ -858,7 +873,7 @@ void botTorpedoAttack(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Siz
     }
 }
 
-void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_Size],char myGrid[Grid_Size][Grid_Size],char copyPlayerGrid[Grid_Size][Grid_Size],int smokeScreeenGrid1[Grid_Size][Grid_Size],int somokeScreenGrid2[Grid_Size][Grid_Size],char botName[10],char opponentName[10],int difficulty,int *sunkShips,int *radarSweep,int *smokeScreen,int *readyArtilleries,int *readyTorpedo,int hits[4],int sunkShipsFlag[4]){
+void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_Size],char myGrid[Grid_Size][Grid_Size],char copyPlayerGrid[Grid_Size][Grid_Size],int smokeScreenGrid1[Grid_Size][Grid_Size],int somokeScreenGrid2[Grid_Size][Grid_Size],char botName[10],char opponentName[10],int difficulty,int *sunkShips,int *radarSweep,int *smokeScreen,int *readyArtilleries,int *readyTorpedo,int hits[4],int sunkShipsFlag[4]){
     displayGrid(viewGrid);
 
     static int firedCells[Grid_Size][Grid_Size]={0};
@@ -882,7 +897,6 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
     }
 
     if(*readyTorpedo){
-        printf("Bot uses Torpedo!\n\n");
         int row,col;
         int isRow;
         if(checkHitCount(ShipsTargetingInfo)){
@@ -907,34 +921,35 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
             optimalRandomCoordinatesForTorpedo(&row,&col,&isRow,firedCells);  
         }
         if(isRow){
+            printf("Bot uses Torpedo at %d.\n",row+1);
             botTorpedoAttack(shipGrid,viewGrid,copyPlayerGrid,radarGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,row,isRow,difficulty);
         }else{
+            char c = 'A' + col;
+            printf("Bot uses Torpedo at %c.\n",c);
             botTorpedoAttack(shipGrid,viewGrid,copyPlayerGrid,radarGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,col,isRow,difficulty);
         }
     }else if(*readyArtilleries){
-        printf("Bot uses Artillery!\n\n");
         int row,col;
         if(checkHitCount(ShipsTargetingInfo)){
            bestRowColForArtillery(&row,&col,ShipsTargetingInfo,firedCells);
         }else{
             optimalRandomCoordinatesForTargetingtwobytwoGrid(&row,&col,firedCells);
         }
+        char c = 'A' + col;
+        printf("Bot uses Artillery at %c%d.\n",c,row+1);
         botArtilleryAttack(shipGrid,viewGrid,copyPlayerGrid,radarGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,row,col,difficulty);
     }else if(!checkHitCount(ShipsTargetingInfo) && (*radarSweep) > 0 && ((turn == 0) || (*sunkShips)==2) || ((*sunkShips)==3)){
-        printf("Bot uses Radar.\n");
         int row,col;
         optimalRandomCoordinatesForTargetingtwobytwoGrid(&row,&col,firedCells);
-        found = botRadar(copyPlayerGrid,smokeScreeenGrid1,radarGrid,row,col,radarSweep);
+        char c = 'A' + col;
+        printf("Bot uses Radar at %c%d.\n",c,row+1);
+        found = botRadar(copyPlayerGrid,smokeScreenGrid1,radarGrid,row,col,radarSweep);
     }else if(checkHitCount(ShipsTargetingInfo)){
-        printf("Bot uses advanced fire.\n");
         botAdvancedFire(shipGrid,viewGrid,copyPlayerGrid,radarGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,difficulty);    
     }else if(unfiredcount > 0){
-        printf("Bot uses fire.\n");
         if(found){
-            printf("on radar Area\n");
             botFireOnRadarArea(shipGrid,viewGrid,copyPlayerGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,difficulty,radarGrid);
         }else{
-            printf("Randomly\n");
             botRandomFire(shipGrid,viewGrid,copyPlayerGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,difficulty);
         }
     }
@@ -987,7 +1002,7 @@ int main(){
     char copyBotGrid [Grid_Size][Grid_Size];
     for(int i = 0;i<Grid_Size;i++){
         for(int j = 0;j<Grid_Size;j++){
-            copyPlayerGrid[i][j] = botGrid[i][j];
+            copyBotGrid[i][j] = botGrid[i][j];
         }
     }
 
