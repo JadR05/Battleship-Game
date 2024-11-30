@@ -709,7 +709,6 @@ void optimalRandomCoordinatesForTorpedo(int *row,int *col,int *isRow,int firedCe
     }
 }
 
-
 void botRandomFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_Size],char copyPlayerGrid[Grid_Size][Grid_Size],int firedCells[Grid_Size][Grid_Size],ShipTargetingInfo Ships[numOfShips],Coordinates unfiredCells[],int *unfiredcount,int difficulty){
     int row,col;
     randomCoordinates(unfiredCells,*unfiredcount,&row,&col);
@@ -757,44 +756,21 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
     
     for (int i = 0;i < numOfShips;i++){
         if (Ships[i].hitcount > 0){
-            Coordinates initialHit = Ships[i].hitstack[0];
             int firingdirection = Ships[i].firingdirection;
-
+            Coordinates initialHit = Ships[i].hitstack[0];
             int direction[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-
-            if(firingdirection != -1) {
-                Coordinates target = Ships[i].hitstack[(Ships[i].hitcount)-1];
-                int newRow = target.row + direction[firingdirection][0];
-                int newCol = target.col + direction[firingdirection][1];
-                
-                if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
-                    char c = 'A' + newCol;
-                    printf("Bot uses advanced firing at %c%d\n",c,newRow+1);
-                    fire(shipGrid,viewGrid,newRow,newCol,difficulty);
-                    fired = 1;
-                    radarGrid[newRow][newCol] = 0;
-                    markFired(unfiredCells,unfiredcount,firedCells,newRow,newCol);
-                    if (viewGrid[newRow][newCol] == '*') {
-                        int j = checkTypeOfShip(copyPlayerGrid,newRow,newCol);
-                        addHit(Ships[j].hitstack,&Ships[j].hitcount,newRow,newCol);
-                    }
-                }
-            }
-            if (!fired){
-                for (int dir = 0;dir < 4;dir++){
-                    if(dir == firingdirection){
-                        continue;
-                    }
+            if(Ships[i].hitcount == 1){
+                for(int dir = 0;dir < 4;dir++){
                     int newRow = initialHit.row + direction[dir][0];
                     int newCol = initialHit.col + direction[dir][1];
                     
                     if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
                         char c = 'A' + newCol;
                         printf("Bot uses advanced firing at %c%d\n",c,newRow+1);
-                        fire(shipGrid, viewGrid, newRow, newCol, difficulty);
+                        fire(shipGrid,viewGrid,newRow,newCol,difficulty);
                         fired = 1;
                         radarGrid[newRow][newCol] = 0;
-                        markFired(unfiredCells,unfiredcount,firedCells,newRow, newCol);
+                        markFired(unfiredCells,unfiredcount,firedCells,newRow,newCol);
                         if (viewGrid[newRow][newCol] == '*') {
                             int j = checkTypeOfShip(copyPlayerGrid,newRow,newCol);
                             addHit(Ships[j].hitstack,&Ships[j].hitcount,newRow,newCol);
@@ -803,10 +779,90 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
                         break;
                     }
                 }
+            }else{
+                if(firingdirection != -1) {
+                    Coordinates target = Ships[i].hitstack[(Ships[i].hitcount)-1];
+                    int newRow = target.row + direction[firingdirection][0];
+                    int newCol = target.col + direction[firingdirection][1];
+                    
+                    if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
+                        char c = 'A' + newCol;
+                        printf("Bot uses advanced firing at %c%d\n",c,newRow+1);
+                        fire(shipGrid,viewGrid,newRow,newCol,difficulty);
+                        fired = 1;
+                        radarGrid[newRow][newCol] = 0;
+                        markFired(unfiredCells,unfiredcount,firedCells,newRow,newCol);
+                        if (viewGrid[newRow][newCol] == '*') {
+                            int j = checkTypeOfShip(copyPlayerGrid,newRow,newCol);
+                            addHit(Ships[j].hitstack,&Ships[j].hitcount,newRow,newCol);
+                        }
+                    }
+                }
+                if (!fired){
+                    if(firingdirection != -1){
+                        for (int dir = 0;dir < 4;dir++){
+                            if(dir == firingdirection){
+                                continue;
+                            }
+                            int newRow = initialHit.row + direction[dir][0];
+                            int newCol = initialHit.col + direction[dir][1];
+                            
+                            if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
+                                char c = 'A' + newCol;
+                                printf("Bot uses advanced firing at %c%d\n",c,newRow+1);
+                                fire(shipGrid, viewGrid, newRow, newCol, difficulty);
+                                fired = 1;
+                                radarGrid[newRow][newCol] = 0;
+                                markFired(unfiredCells,unfiredcount,firedCells,newRow, newCol);
+                                if (viewGrid[newRow][newCol] == '*') {
+                                    int j = checkTypeOfShip(copyPlayerGrid,newRow,newCol);
+                                    addHit(Ships[j].hitstack,&Ships[j].hitcount,newRow,newCol);
+                                    Ships[j].firingdirection = dir;
+                                }
+                                break;
+                            }
+                        }
+                    }else{
+                        Coordinates firstHit = Ships[i].hitstack[0];
+                        Coordinates secondHit = Ships[i].hitstack[1];
+
+                        if (firstHit.row == secondHit.row) {
+                            if(secondHit.col>firstHit.col){
+                                Ships[i].firingdirection = 3;
+                            }else{
+                                Ships[i].firingdirection = 2;
+                            }
+                        } else if (firstHit.col == secondHit.col) {
+                            if(secondHit.row > firstHit.row){
+                                Ships[i].firingdirection = 1;
+                            }else{
+                                Ships[i].firingdirection = 0;
+                            }
+                        }
+
+                        int firingdirection = Ships[i].firingdirection;
+                        Coordinates target = Ships[i].hitstack[Ships[i].hitcount - 1];
+                        int newRow = target.row + direction[firingdirection][0];
+                        int newCol = target.col + direction[firingdirection][1];
+
+                        if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
+                            char c = 'A' + newCol;
+                            printf("Bot uses advanced firing at %c%d\n", c, newRow + 1);
+                            fire(shipGrid, viewGrid, newRow, newCol, difficulty);
+                            fired = 1;
+                            radarGrid[newRow][newCol] = 0;
+                            markFired(unfiredCells, unfiredcount, firedCells, newRow, newCol);
+                            if (viewGrid[newRow][newCol] == '*') {
+                                int j = checkTypeOfShip(copyPlayerGrid, newRow, newCol);
+                                addHit(Ships[j].hitstack, &Ships[j].hitcount, newRow, newCol);
+                            }
+                        }
+                    }  
+                }
             }
-        }
-        if (fired) {
-            break;
+            if (fired) {
+                break;
+            }
         }
     }
 }
