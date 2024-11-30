@@ -714,9 +714,9 @@ void botRandomFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][
     int row,col;
     randomCoordinates(unfiredCells,*unfiredcount,&row,&col);
 
-    fire(shipGrid,viewGrid,row,col,difficulty);
     char c = 'A' + col;
-    printf("Bot uses rondom fire at %c%d",c,row+1);
+    printf("Bot uses rondom fire at %c%d\n",c,row+1);
+    fire(shipGrid,viewGrid,row,col,difficulty);
     markFired(unfiredCells,unfiredcount,firedCells,row,col);
     if(viewGrid[row][col] == '*'){
         int i = checkTypeOfShip(copyPlayerGrid,row,col);
@@ -811,7 +811,7 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
     }
 }
 
-int botRadar(char shipGrid[Grid_Size][Grid_Size],int smokeScreenGrid[Grid_Size][Grid_Size],int radarGrid[Grid_Size][Grid_Size],int row,int col,int *radarSweep){
+int botRadar(char shipGrid[Grid_Size][Grid_Size],int smokeScreenGrid[Grid_Size][Grid_Size],int radarGrid[Grid_Size][Grid_Size],int row,int col){
     int found = 0;
     for(int i = row;i < row + 2 && i < Grid_Size;i++){
         for(int j = col;j < col + 2 && j < Grid_Size;j++){
@@ -824,7 +824,6 @@ int botRadar(char shipGrid[Grid_Size][Grid_Size],int smokeScreenGrid[Grid_Size][
             break;
         }
     }
-    (*radarSweep)--;
     if (found){
         for(int i = row;i < row + 2 && i < Grid_Size;i++){
             for(int j = col;j < col + 2 && j < Grid_Size;j++){
@@ -943,7 +942,8 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
         optimalRandomCoordinatesForTargetingtwobytwoGrid(&row,&col,firedCells);
         char c = 'A' + col;
         printf("Bot uses Radar at %c%d.\n",c,row+1);
-        found = botRadar(copyPlayerGrid,smokeScreenGrid1,radarGrid,row,col,radarSweep);
+        found = botRadar(copyPlayerGrid,smokeScreenGrid1,radarGrid,row,col);
+        (*radarSweep)--;
     }else if(checkHitCount(ShipsTargetingInfo)){
         botAdvancedFire(shipGrid,viewGrid,copyPlayerGrid,radarGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,difficulty);    
     }else if(unfiredcount > 0){
