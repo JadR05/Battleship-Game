@@ -539,8 +539,8 @@ int getRowCol(ShipTargetingInfo Ships[numOfShips],int *row,int *col){
         if (Ships[i].hitcount > 0){
             *row = Ships[i].hitstack[Ships[i].hitcount-1].row;
             *col = Ships[i].hitstack[Ships[i].hitcount-1].col;
+            return i;
         }
-        return i;
     }
 }
 
@@ -582,6 +582,40 @@ void checkFoundforRadar(int radarGrid[Grid_Size][Grid_Size],int *found){
         }
     }
     (*found) = 0;
+}
+
+void optimalRandomCoordinatesForRadar(int *row,int *col,int firedCells[Grid_Size][Grid_Size],int radarSweepGrid[Grid_Size][Grid_Size]){
+    int maxScore = -1;
+    int bestRow,bestCol;
+
+    for (int r = 0; r < Grid_Size - 1; r++) {
+        for (int c = 0; c < Grid_Size - 1; c++) {
+            if (radarSweepGrid[r][c] == 1) {
+                continue;
+            }
+
+            if (firedCells[r][c] || firedCells[r + 1][c] || firedCells[r][c + 1] || firedCells[r + 1][c + 1]) {
+                continue;
+            }
+
+            int score = 0;                
+            if (!firedCells[r][c]) score++;
+            if (!firedCells[r + 1][c]) score++;
+            if (!firedCells[r][c + 1]) score++;
+            if (!firedCells[r + 1][c + 1]) score++;
+
+            if (score > maxScore) {
+                maxScore = score;
+                bestRow = r;
+                bestCol = c;
+            }
+        }
+    }
+
+    *row = bestRow;
+    *col = bestCol;
+
+    radarSweepGrid[bestRow][bestCol] = 1;
 }
 
 void getRowColDependingOnFiringDir(int firingdir,int hitrow,int hitcol,int *row, int *col){
@@ -637,7 +671,7 @@ void bestRowColForArtillery(int *row,int *col,ShipTargetingInfo Ships[numOfShips
     }       
 }
 
-void optimalRandomCoordinatesForTargetingtwobytwoGrid(int *row,int *col,int firedCells[Grid_Size][Grid_Size]){
+void optimalRandomCoordinatesForArtillery(int *row,int *col,int firedCells[Grid_Size][Grid_Size]){
     int maxScore = -1;
     int bestRow,bestCol;
 
@@ -934,6 +968,7 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
     static int firedCells[Grid_Size][Grid_Size]={0};
 
     static int radarGrid[Grid_Size][Grid_Size]={0};
+    static int radarSweepGrid[Grid_Size][Grid_Size] = {0};
     static int found;
     static int turn = 0;
 
@@ -988,7 +1023,7 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
         if(checkHitCount(ShipsTargetingInfo)){
            bestRowColForArtillery(&row,&col,ShipsTargetingInfo,firedCells);
         }else{
-            optimalRandomCoordinatesForTargetingtwobytwoGrid(&row,&col,firedCells);
+            optimalRandomCoordinatesForArtillery(&row,&col,firedCells);
         }
         char c = 'A' + col;
         printf("Bot uses Artillery at %c%d.\n",c,row+1);
@@ -998,7 +1033,7 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
         if(turn == 0){
             randomCoordinates(unfiredCells,unfiredcount,&row,&col);
         }else{
-            optimalRandomCoordinatesForTargetingtwobytwoGrid(&row,&col,firedCells);
+            optimalRandomCoordinatesForRadar(&row,&col,firedCells,radarSweepGrid);
         }
         char c = 'A' + col;
         printf("Bot uses Radar at %c%d.\n",c,row+1);
