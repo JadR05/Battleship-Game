@@ -939,7 +939,11 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
         botArtilleryAttack(shipGrid,viewGrid,copyPlayerGrid,radarGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,row,col,difficulty);
     }else if(!checkHitCount(ShipsTargetingInfo) && (*radarSweep) > 0 && ((turn == 0) || ((*sunkShips)==2) || ((*sunkShips)==3))){
         int row,col;
-        optimalRandomCoordinatesForTargetingtwobytwoGrid(&row,&col,firedCells);
+        if(turn == 0){
+            randomCoordinates(unfiredCells,unfiredcount,&row,&col);
+        }else{
+            optimalRandomCoordinatesForTargetingtwobytwoGrid(&row,&col,firedCells);
+        }
         char c = 'A' + col;
         printf("Bot uses Radar at %c%d.\n",c,row+1);
         found = botRadar(copyPlayerGrid,smokeScreenGrid1,radarGrid,row,col);
