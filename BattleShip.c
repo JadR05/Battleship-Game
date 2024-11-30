@@ -815,7 +815,6 @@ int botRadar(char shipGrid[Grid_Size][Grid_Size],int smokeScreenGrid[Grid_Size][
     int found = 0;
     for(int i = row;i < row + 2 && i < Grid_Size;i++){
         for(int j = col;j < col + 2 && j < Grid_Size;j++){
-            printf("%d,%c\n",smokeScreenGrid[i][j], shipGrid[i][j]);
             if(smokeScreenGrid[i][j] == 0 && (shipGrid[i][j] == 'C' || shipGrid[i][j] == 'B' || shipGrid[i][j] == 'D' || shipGrid[i][j] == 'S')){
                 found = 1;
                 break;
@@ -939,7 +938,7 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
         char c = 'A' + col;
         printf("Bot uses Artillery at %c%d.\n",c,row+1);
         botArtilleryAttack(shipGrid,viewGrid,copyPlayerGrid,radarGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,row,col,difficulty);
-    }else if(!checkHitCount(ShipsTargetingInfo) && (*radarSweep) > 0 && ((turn == 0) || (*sunkShips)==2) || ((*sunkShips)==3)){
+    }else if(!checkHitCount(ShipsTargetingInfo) && (*radarSweep) > 0 && ((turn == 0) || ((*sunkShips)==2) || ((*sunkShips)==3))){
         int row,col;
         optimalRandomCoordinatesForTargetingtwobytwoGrid(&row,&col,firedCells);
         char c = 'A' + col;
