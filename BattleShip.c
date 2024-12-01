@@ -1054,7 +1054,9 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
     Checkifsunk(shipGrid,viewGrid,ships,sunkShips,smokeScreen,readyArtilleries,readyTorpedo,botName,opponentName,hits,sunkShipsFlag);
     removeHitsForSunkShips(copyPlayerGrid,ShipsTargetingInfo,sunkShipsFlag);
     checkFoundforRadar(radarGrid,&found);
-    turn++;
+    if(turn == 0){
+        turn++;
+    }
 }
 
 int main(){
