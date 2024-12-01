@@ -1021,14 +1021,14 @@ void botMove(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_S
     }else if(*readyArtilleries){
         int row,col;
         if(checkHitCount(ShipsTargetingInfo)){
-           bestRowColForArtillery(&row,&col,ShipsTargetingInfo,firedCells);
+            bestRowColForArtillery(&row,&col,ShipsTargetingInfo,firedCells);
         }else{
             optimalRandomCoordinatesForArtillery(&row,&col,firedCells);
         }
         char c = 'A' + col;
         printf("Bot uses Artillery at %c%d.\n",c,row+1);
         botArtilleryAttack(shipGrid,viewGrid,copyPlayerGrid,radarGrid,firedCells,ShipsTargetingInfo,unfiredCells,&unfiredcount,row,col,difficulty);
-    }else if(!checkHitCount(ShipsTargetingInfo) && (*radarSweep) > 0 && ((turn == 0) || ((*sunkShips)==2) || ((*sunkShips)==3))){
+    }else if(!checkHitCount(ShipsTargetingInfo) && (!found) && (*radarSweep) > 0 && ((turn == 0) || ((*sunkShips)==2) || ((*sunkShips)==3))){
         int row,col;
         if(turn == 0){
             randomCoordinates(unfiredCells,unfiredcount,&row,&col);
