@@ -748,7 +748,7 @@ void botRandomFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][
     randomCoordinates(unfiredCells,*unfiredcount,&row,&col);
 
     char c = 'A' + col;
-    printf("Bot uses rondom fire at %c%d\n",c,row+1);
+    printf("Bot fires at %c%d\n",c,row+1);
     fire(shipGrid,viewGrid,row,col,difficulty);
     markFired(unfiredCells,unfiredcount,firedCells,row,col);
     if(viewGrid[row][col] == '*'){
@@ -775,7 +775,7 @@ void botFireOnRadarArea(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_S
     }
 
     char c = 'A' + col;
-    printf("Bot uses fire on radar Area at %c%d\n",c,row+1);
+    printf("Bot fires at %c%d\n",c,row+1);
     fire(shipGrid,viewGrid,row,col,difficulty);
     radarGrid[row][col] = 0;
     markFired(unfiredCells,unfiredcount,firedCells,row,col);
@@ -800,7 +800,7 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
                     
                     if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
                         char c = 'A' + newCol;
-                        printf("Bot uses advanced firing at %c%d\n",c,newRow+1);
+                        printf("Bot fires at %c%d\n",c,newRow+1);
                         fire(shipGrid,viewGrid,newRow,newCol,difficulty);
                         fired = 1;
                         radarGrid[newRow][newCol] = 0;
@@ -821,7 +821,7 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
                     
                     if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
                         char c = 'A' + newCol;
-                        printf("Bot uses advanced firing at %c%d\n",c,newRow+1);
+                        printf("Bot fires at %c%d\n",c,newRow+1);
                         fire(shipGrid,viewGrid,newRow,newCol,difficulty);
                         fired = 1;
                         radarGrid[newRow][newCol] = 0;
@@ -843,7 +843,7 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
                             
                             if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
                                 char c = 'A' + newCol;
-                                printf("Bot uses advanced firing at %c%d\n",c,newRow+1);
+                                printf("Bot fires at %c%d\n",c,newRow+1);
                                 fire(shipGrid, viewGrid, newRow, newCol, difficulty);
                                 fired = 1;
                                 radarGrid[newRow][newCol] = 0;
@@ -881,7 +881,7 @@ void botAdvancedFire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size
 
                         if (newRow >= 0 && newRow < Grid_Size && newCol >= 0 && newCol < Grid_Size && !firedCells[newRow][newCol]) {
                             char c = 'A' + newCol;
-                            printf("Bot uses advanced firing at %c%d\n", c, newRow + 1);
+                            printf("Bot fires at %c%d\n", c, newRow + 1);
                             fire(shipGrid, viewGrid, newRow, newCol, difficulty);
                             fired = 1;
                             radarGrid[newRow][newCol] = 0;
