@@ -263,7 +263,7 @@ void botPlaceShips(char grid[Grid_Size][Grid_Size]){
 
 void fire(char shipGrid[Grid_Size][Grid_Size],char viewGrid[Grid_Size][Grid_Size],int row,int col,int difficulty){
     if(shipGrid[row][col] == '~'){
-        if(difficulty == 1){
+        if(difficulty == Easy){
             viewGrid[row][col] = 'o';
         }
         printf("Miss!\n");
